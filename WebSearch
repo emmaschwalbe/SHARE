@@ -1,0 +1,268 @@
+//Here is a small sample of JAVA coding that I have implemented for the course: Data Structes 
+package webSearch;
+import readFile.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+
+//import com.sun.corba.se.impl.orbutil.graph.Graph;
+
+
+
+public class WebSearch {
+  public static void main(String [] args) throws IOException,BadInputException{
+		
+		BufferedReader br= new BufferedReader (new InputStreamReader(System.in));
+        
+		ReadFile rdfile =  new ReadFile(args[0]); // Run configuration will replace args[0] with filename.txt 
+		
+		
+		System.out.println("Welcome to WebSearch!");
+		System.out.println();
+
+		System.out.println("Choose an option or type 'quit' to quit:");
+		System.out.println("1. Print Graph");
+		System.out.println("2. Degrees of Separation");
+		System.out.println();
+		 System.out.print("> ");
+		
+		String input= br.readLine();
+		 System.out.println();
+		//////////////////////////////////////////////////
+		Digraph graph = new Digraph(rdfile); // create new graph using our created Digraph class
+		
+		
+		///////////////////////////////////
+		///////////////
+		
+		
+										/// MENU STARTS HERE////
+		while(!input.equals("quit")){
+			
+			if (input.equals("1")){
+				 
+				 System.out.println("Printing Graph...");// the very first text that should be printed
+					PrintGraph(graph); //calls PrintGraph method using created graph
+					// above method prints out in....
+					//vertex1 (keyphrase1, keyphrase2, ..., keyphraseN,) : Outlink1, Outlink2, ..., OutlinkN
+					//vertex2 (keyphrase1, keyphrase2, ..., keyphraseN,) : Outlink1, Outlink2, ..., OutlinkN
+					//vertexN (keyphrase1, keyphrase2, ..., keyphraseN,) : Outlink1, Outlink2, ..., OutlinkN
+					//...format 
+
+				
+				 System.out.println("");
+				 System.out.println("Choose an option or type 'quit' to quit:");
+				 System.out.println("1. Print Graph");
+				 System.out.println("2. Degrees of Separation");
+				 System.out.println();
+				 System.out.print("> ");
+				
+
+				 input = br.readLine();
+				 System.out.println();
+
+			 }//end of if ( input.equals("1") )
+
+
+
+			else if (input.equals("2")){
+				
+				System.out.print("Title of origin page > ");
+				String origin = br.readLine();
+				
+				int Start=FindTitleValue(graph, origin);
+				//FindTitileValue looks up the vertex index of the origin and returns the int value 
+
+				System.out.print("Title of Destination page > ");
+				String destination = br.readLine();
+				int Finish=FindTitleValue(graph, destination); 
+				//FindTitileValue looks up the vertex index of the destination and returns the int value 
+				
+				
+				System.out.print("Degrees of separation between pages " + '"' + origin + '"' +  " and " + '"' +destination+ '"' + ": " );
+				
+				int result = DegreesofSeparation(graph,Start, Finish);
+				//returns the degrees of separation between vertex Start to vertex Finish 
+				System.out.print(result);
+				System.out.println();
+				System.out.println();
+				System.out.println("Choose an option or type 'quit' to quit:");
+				System.out.println("1. Print Graph");
+				System.out.println("2. Degrees of Separation");
+				System.out.println();
+				System.out.print("> ");
+				input= br.readLine();
+				System.out.println();			
+
+			}//end of if ( input.equals("2") )
+			
+			
+		}//end of while 
+									/// MENU ENDS HERE////
+	}// end of main 
+	
+	
+
+	///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
+
+	public static void PrintGraph(Digraph graph){
+	// int count=0; 
+	 
+	 for(int i=0; i<graph.getKeys().size(); i++ ){
+		 LinkedList Key = new LinkedList();
+		
+		 System.out.print(i + " (");// prints vertex i and (
+		 
+		 for(int x=0; x<graph.getKeys().get(i).size() ;x++){
+
+			 System.out.print(graph.getKeys().get(i).get(x) );
+			 
+			 if(x == graph.getKeys().get(i).size() - 1){
+				 break;
+			 }
+				 
+			 System.out.print(", ");
+		 }//end of for loop x  which prints out key phrases separated by ,
+		 
+		 System.out.print(") : "); // close ) and :
+		 
+		 for(int k=0; k<graph.getAdj().get(i).size() ;k++){
+
+			 System.out.print(graph.getAdj().get(i).get(k) );
+			 
+			 if(k == graph.getAdj().get(i).size() - 1){
+				 break;
+			 }
+				 
+			 System.out.print(", ");
+		 }//end of for loop k which prints out Outlinks separated by , 
+		 
+		// count++;
+		 
+		 System.out.println();
+	 }//end of for loop i 
+	 
+	}//end of PrintGraph
+
+	public static ArrayList<LinkedList> OutLinkNotThere (ArrayList<LinkedList> list, LinkedList check  ,int look, int[] predecessor){
+		
+		LinkedList NewList = new LinkedList();
+		boolean isThere = false;
+		
+		for ( int i=0 ; i < check.size() ; i++){
+			int N = (Integer) check.get(i);
+			
+			for( int j=0 ; j < list.size(); j++ ){
+				
+				for ( int k=0 ; k < list.get(j).size() ; k++){
+					
+					if ( (Integer)list.get(j).get(k) == N ){
+						isThere = true;
+					}
+					
+				}//end of k loop
+				
+				
+				
+			}//end of j loop
+			if(isThere == false)
+				NewList.add(check.get(i) );
+				if (!NewList.isEmpty()){
+					//System.out.println("look "+look+" NewList:"+NewList);
+					}
+			isThere = false;
+			
+		}// end of i loop
+		
+		for (int r = 0; r < NewList.size(); r++) {
+			predecessor[(Integer)NewList.get(r)] = look;
+		} // 
+
+		if ( !NewList.isEmpty() )
+			list.add( NewList);
+		return list;
+	}
+	
+	public static int DegreesofSeparation(Digraph graph, int Start, int Finish){
+		
+		if (Start== Finish){
+			return 0;
+		}
+		
+		int[] predecessor = new int[graph.getAdj().size()];
+		for (int i = 0; i < predecessor.length; i++) {
+			predecessor[i] = -1;
+		}
+		
+		Queue<Integer> Q= new LinkedList<Integer>();
+		ArrayList<LinkedList> visited = new ArrayList<LinkedList>();
+		LinkedList start= new LinkedList();
+		start.add((Object)Start ) ;
+		
+		int lookup=-1;
+		int count=0; // actually keeping count of "lines" in visited 
+		Q.offer(Start);
+		visited.add(start);
+		int visitB4size=0;
+		int visitAftersize=0;
+		lookup=Q.remove();
+			while(lookup!=Finish ){
+				
+				visitB4size=visited.size();
+				//System.out.println();
+				visited=OutLinkNotThere(visited, graph.getAdj().get(lookup), lookup, predecessor);
+				//OutlinksNotThere checks if "outlinks" of lookup are in visited and if not adds it 
+				visitAftersize=visited.size();
+				
+				//System.out.println("lookup "+ lookup+ " visited="+visited);
+				
+				if (count<visited.size() && visitB4size<visitAftersize ){
+					count++;
+					for(int x=0; x<visited.get(count).size();x++){
+						Q.offer((Integer)visited.get(count).get(x));
+					}//end of x for
+				}//end if if
+				
+				if (Q.isEmpty()&& lookup!=Finish){
+					return -1;
+				}
+				lookup=Q.remove();
+			}//end of while
+		
+			
+			
+			/*for(int i = 0; i < predecessor.length; i++) {
+				System.out.println(i + " : " + predecessor[i]);
+			}*/
+			
+			int Visited = Finish;
+			int counter=0;
+			while(Visited!=-1){
+				Visited= predecessor[Visited];
+				counter++;
+				
+			}// while loop works back through predecessor to find degrees of separation (counter)
+			
+		return counter-1; 
+		// -1 because also includes last check which is value [-1] in predecessor which is not part of the count
+	}//end of DegreesofSeparation
+	
+	public static int FindTitleValue(Digraph graph, String Title){
+		for (int i=0; i<graph.getTitle().size();i++){
+			if (graph.getTitle().get(i).equalsIgnoreCase(Title)){
+				return i;
+			}// checks if the inputed title (String Title) is in the graph 
+			//// getTitle() returns Title which is an ArrayList<String>;
+			
+		}
+		
+		return -1;
+		
+	}
+	
+	
+	
+}// end of WebSearch class
+
